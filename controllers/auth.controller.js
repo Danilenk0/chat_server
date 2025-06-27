@@ -1,7 +1,9 @@
 import User from '../models/user.model.js'
 import { validationResult } from 'express-validator'
 import bcrypt from 'bcryptjs'
-import {generateToken} from '../lib/utils.js'
+import { generateToken } from '../lib/utils.js'
+import coudinary from '../lib/cloudinary.js'
+import cloudinary from '../lib/cloudinary.js'
 
 export const signup = async (req, res)=>{
     try {
@@ -74,7 +76,7 @@ export const signin = async (req, res) => {
     }
 }
 
-export const logout = () => {
+export const logout = (req, res) => {
     try {
         res.cookie('jwt', '', { maxAge: 0 })
         res.status(200).json({
@@ -86,5 +88,41 @@ export const logout = () => {
         res.status(500).json({
             message: "Internal server error"
         });
+    }
+}
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { profilePic } = req.body;
+        const userId = req.user._id;
+
+        if (!profilePic) {
+            return res.status(400).json({
+                message:"Profile picture is required"
+            })
+        }
+
+        const uploadResponse = await cloudinary.uploader.upload(profilePic)
+        const updatedUser = await User.findByIdAndUpdate({ profilePic: uploadResponse.secure_url })
+        
+        res.status(200).json(updatedUser)
+        
+    } catch (error) {
+        consol.log('Error in update profile controller ', error.message)
+        res.status(500).json({
+            message:"Invalid server error"
+        })
+    }
+}
+
+export const checkAuth = async (req, res) => {
+    try {
+        res.status(200).json(req.user)
+        
+    } catch (error) {
+        console.log("Error in check auth controller", error.message)
+        res.status(500).json({
+            message:"Internal server error"
+        })
     }
 }
