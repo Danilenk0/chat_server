@@ -2,7 +2,6 @@ import User from '../models/user.model.js'
 import { validationResult } from 'express-validator'
 import bcrypt from 'bcryptjs'
 import { generateToken } from '../lib/utils.js'
-import coudinary from '../lib/cloudinary.js'
 import cloudinary from '../lib/cloudinary.js'
 
 export const signup = async (req, res)=>{
@@ -103,7 +102,9 @@ export const updateProfile = async (req, res) => {
         }
 
         const uploadResponse = await cloudinary.uploader.upload(profilePic)
-        const updatedUser = await User.findByIdAndUpdate({ profilePic: uploadResponse.secure_url })
+        const updatedUser = await User.findByIdAndUpdate({ profilePic: uploadResponse.secure_url }, {
+            new:true
+        })
         
         res.status(200).json(updatedUser)
         
